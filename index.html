@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <button id="instructionsButton" class="button instructions-button" aria-label="Instrucciones">❓</button>
+            <h1>Snake Game</h1>
+            <div>
+                <button id="themeButton" class="button theme-button" aria-label="Cambiar tema">🌞</button>
+                <button id="colorblindButton" class="button colorblind-button" aria-label="Modo daltónico">👁️</button>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <button id="restartButton" class="button restart-button">Reiniciar Juego</button>
+    </div>
+
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <h2>Cómo jugar</h2>
+            <p>Usa las teclas de flecha o WASD para controlar la serpiente.</p>
+            <p>Come la comida para crecer y aumentar tu puntuación.</p>
+            <p>Evita los obstáculos y no choques contigo mismo.</p>
+            <button id="closeInstructionsButton" class="button">Cerrar</button>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
