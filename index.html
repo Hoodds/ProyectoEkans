@@ -3,33 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
+    <title>EKANS</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="LOGOEKANS" type="image/x-icon">
 </head>
 <body>
-    <div class="game-container">
-        <div class="game-header">
-            <button id="instructionsButton" class="button instructions-button" aria-label="Instrucciones">❓</button>
-            <h1>Snake Game</h1>
-            <div>
-                <button id="themeButton" class="button theme-button" aria-label="Cambiar tema">🌞</button>
-                <button id="colorblindButton" class="button colorblind-button" aria-label="Modo daltónico">👁️</button>
-            </div>
-        </div>
-        <canvas id="gameCanvas"></canvas>
-        <button id="restartButton" class="button restart-button">Reiniciar Juego</button>
+    <div id="izquierda">
+        <button id="botonInstrucciones" class="alternar-instrucciones">
+            <span class="icono-alternar-instrucciones">❓</span>
+        </button>
     </div>
-
-    <div id="instructionsModal" class="modal">
-        <div class="modal-content">
+    <div id="derecha">
+        <button id="botonTema" class="alternar-tema">
+            <span class="icono-alternar-tema">🌞</span>
+        </button>
+        <button id="botonDaltonico" class="alternar-daltonico" aria-label="Activar modo daltónico">
+            <span class="icono-alternar-daltonico">👁️</span>
+        </button>
+    </div>
+    
+    <div class="pagina-bienvenida" id="paginaBienvenida">
+        <div class="encabezado-bienvenida">
+            <img src="LOGOEKANS" alt="Logo Ekans" class="logo-ekans">
+            <h1 class="titulo-bienvenida">EKANS</h1>
+        </div>
+        <div class="instrucciones">
             <h2>Cómo jugar</h2>
             <p>Usa las teclas de flecha o WASD para controlar la serpiente.</p>
             <p>Come la comida para crecer y aumentar tu puntuación.</p>
             <p>Evita los obstáculos y no choques contigo mismo.</p>
-            <button id="closeInstructionsButton" class="button">Cerrar</button>
+            <p>Presiona la barra espaciadora o el botón de pausa para pausar el juego.</p>
+        </div>
+        <button class="boton-jugar" id="botonJugar">¡Jugar!</button>
+    </div>
+    
+    <div class="contenedor-juego" id="contenedorJuego">
+        <div class="area-juego">
+            <div class="encabezado-juego">
+                <img src="LOGOEKANS" alt="Logo Ekans" class="logo-ekans">
+                <h1>EKANS</h1>
+            </div>
+            <div class="info-juego">
+                <div id="level">Level: 1</div>
+                <div id="score">Score: 0</div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+            <button id="botonPausa" class="boton-pausa">Pausar</button>
+        </div>
+    </div>
+    
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <span class="cerrar">&times;</span>
+            <h2>Cómo jugar</h2>
+            <p>Usa las teclas de flecha o WASD para controlar la serpiente.</p>
+            <p>Come la comida para crecer y aumentar tu puntuación.</p>
+            <p>Evita los obstáculos y no choques contigo mismo.</p>
+            <p>Presiona la barra espaciadora o el botón de pausa para pausar el juego.</p>
         </div>
     </div>
 
+    <div id="mensaje_alerta" class="mensaje-alerta">
+        <p id="mensajeTexto"></p>
+        <button id="botonVolverJugar" class="boton-volver-jugar">Volver a jugar</button>
+    </div>
+    
     <script src="js/script.js"></script>
 </body>
 </html>
+

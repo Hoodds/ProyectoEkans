@@ -1,225 +1,312 @@
-const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const gridSize = 20;
-        const cellSize = 20;
+const canvas = document.getElementById("gameCanvas")
+const ctx = canvas.getContext("2d")
+const gridSize = 20
+const cellSize = 22
 
-        canvas.width = gridSize * cellSize;
-        canvas.height = gridSize * cellSize;
+canvas.width = gridSize * cellSize
+canvas.height = gridSize * cellSize
 
-        let snake, direction, food, score, gameOver, speed, obstacles;
+let snake, direction, food, score, gameOver, speed, obstacles, isPaused
 
-        function initializeGame() {
-            snake = [{ x: 10, y: 10 }];
-            direction = 'right';
-            food = spawnFood();
-            score = 0;
-            gameOver = false;
-            speed = 200; // Initial speed
-            obstacles = generateObstacles();
-            gameLoop();
-        }
+function spawnFood() {
+  let foodPosition
+  do {
+    foodPosition = {
+      x: Math.floor(Math.random() * gridSize),
+      y: Math.floor(Math.random() * gridSize),
+    }
+  } while (isPositionOccupied(foodPosition))
+  return foodPosition
+}
 
-        function spawnFood() {
-            let foodPosition;
-            do {
-                foodPosition = {
-                    x: Math.floor(Math.random() * gridSize),
-                    y: Math.floor(Math.random() * gridSize)
-                };
-            } while (isPositionOccupied(foodPosition));
-            return foodPosition;
-        }
+function generateObstacles() {
+  const numObstacles = 10
+  const obstaclePositions = []
+  for (let i = 0; i < numObstacles; i++) {
+    let obstacle
+    do {
+      obstacle = {
+        x: Math.floor(Math.random() * gridSize),
+        y: Math.floor(Math.random() * gridSize),
+      }
+    } while (isPositionOccupied(obstacle))
+    obstaclePositions.push(obstacle)
+  }
+  return obstaclePositions
+}
 
-        function generateObstacles() {
-            const numObstacles = 10;
-            const obstaclePositions = [];
-            for (let i = 0; i < numObstacles; i++) {
-                let obstacle;
-                do {
-                    obstacle = {
-                        x: Math.floor(Math.random() * gridSize),
-                        y: Math.floor(Math.random() * gridSize)
-                    };
-                } while (isPositionOccupied(obstacle));
-                obstaclePositions.push(obstacle);
-            }
-            return obstaclePositions;
-        }
+function isPositionOccupied(position) {
+  return (
+    snake.some((segment) => segment.x === position.x && segment.y === position.y) ||
+    obstacles?.some((obstacle) => obstacle.x === position.x && obstacle.y === position.y)
+  )
+}
 
-        function isPositionOccupied(position) {
-            return (
-                snake.some(segment => segment.x === position.x && segment.y === position.y) ||
-                obstacles?.some(obstacle => obstacle.x === position.x && obstacle.y === position.y)
-            );
-        }
+function drawGrid() {
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--color-background")
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+}
 
-        function drawGrid() {
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
+function drawSnake() {
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--color-snake")
+  snake.forEach((segment) => {
+    ctx.fillRect(segment.x * cellSize, segment.y * cellSize, cellSize - 1, cellSize - 1)
+  })
+}
 
-        function drawSnake() {
-            ctx.fillStyle = '#00ff00';
-            snake.forEach(segment => {
-                ctx.fillRect(
-                    segment.x * cellSize,
-                    segment.y * cellSize,
-                    cellSize - 1,
-                    cellSize - 1
-                );
-            });
-        }
+function drawFood() {
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--color-food")
+  ctx.fillRect(food.x * cellSize, food.y * cellSize, cellSize - 1, cellSize - 1)
+}
 
-        function drawFood() {
-            ctx.fillStyle = '#ff0000';
-            ctx.fillRect(
-                food.x * cellSize,
-                food.y * cellSize,
-                cellSize - 1,
-                cellSize - 1
-            );
-        }
+function drawObstacles() {
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--color-obstacle")
+  obstacles.forEach((obstacle) => {
+    ctx.fillRect(obstacle.x * cellSize, obstacle.y * cellSize, cellSize - 1, cellSize - 1)
+  })
+}
 
-        function drawObstacles() {
-            ctx.fillStyle = '#646cff';
-            obstacles.forEach(obstacle => {
-                ctx.fillRect(
-                    obstacle.x * cellSize,
-                    obstacle.y * cellSize,
-                    cellSize - 1,
-                    cellSize - 1
-                );
-            });
-        }
+function updateScoreAndLevel() {
+  document.getElementById("score").textContent = `Score: ${score}`
+  document.getElementById("level").textContent = `Level: ${Math.ceil(score / 20)}`
+}
 
-        function drawScore() {
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '20px Arial';
-            ctx.fillText(`Score: ${score}`, 10, 20);
-            ctx.fillText(`Level: ${Math.ceil(score / 20)}`, 10, 40);
-        }
+function moveSnake() {
+  const head = { ...snake[0] }
 
-        function moveSnake() {
-            const head = { ...snake[0] };
+  switch (direction) {
+    case "up":
+      head.y--
+      break
+    case "down":
+      head.y++
+      break
+    case "left":
+      head.x--
+      break
+    case "right":
+      head.x++
+      break
+  }
 
-            switch (direction) {
-                case 'up': head.y--; break;
-                case 'down': head.y++; break;
-                case 'left': head.x--; break;
-                case 'right': head.x++; break;
-            }
+  snake.unshift(head)
 
-            snake.unshift(head);
+  if (head.x === food.x && head.y === food.y) {
+    food = spawnFood()
+    score += 10
+    increaseDifficulty()
+  } else {
+    snake.pop()
+  }
 
-            // Check if snake eats the food
-            if (head.x === food.x && head.y === food.y) {
-                food = spawnFood();
-                score += 10;
-                increaseDifficulty();
-            } else {
-                snake.pop();
-            }
+  if (
+    head.x < 0 ||
+    head.x >= gridSize ||
+    head.y < 0 ||
+    head.y >= gridSize ||
+    snake.slice(1).some((segment) => segment.x === head.x && segment.y === head.y) ||
+    obstacles.some((obstacle) => obstacle.x === head.x && obstacle.y === head.y)
+  ) {
+    gameOver = true
+  }
+}
 
-            // Check for collisions
-            if (
-                head.x < 0 || head.x >= gridSize ||
-                head.y < 0 || head.y >= gridSize ||
-                snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y) ||
-                obstacles.some(obstacle => obstacle.x === head.x && obstacle.y === head.y)
-            ) {
-                gameOver = true;
-            }
-        }
+function increaseDifficulty() {
+  if (speed > 50) {
+    speed -= 5
+  }
+}
 
-        function increaseDifficulty() {
-            if (speed > 50) { // Minimum speed limit
-                speed -= 5; // Increase difficulty by decreasing the interval
-            }
-        }
+function gameLoop() {
+  if (gameOver) {
+    drawGameOver()
+    return
+  }
 
-        function gameLoop() {
-            if (gameOver) {
-                drawGameOver();
-                return;
-            }
+  if (!isPaused) {
+    drawGrid()
+    moveSnake()
+    drawSnake()
+    drawFood()
+    drawObstacles()
+    updateScoreAndLevel()
+  }
 
-            drawGrid();
-            moveSnake();
-            drawSnake();
-            drawFood();
-            drawObstacles();
-            drawScore();
-            setTimeout(gameLoop, speed);
-        }
+  setTimeout(gameLoop, speed)
+}
 
-        function drawGameOver() {
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '30px Arial';
-            ctx.fillText('Game Over!', canvas.width / 4, canvas.height / 2 - 20);
-            ctx.font = '20px Arial';
-            ctx.fillText('Press R to Restart', canvas.width / 4, canvas.height / 2 + 20);
-        }
+function drawGameOver() {
+  const mensajeAlerta = document.getElementById("mensaje_alerta")
+  const mensajeTexto = document.getElementById("mensajeTexto")
+  const botonVolverJugar = document.getElementById("botonVolverJugar")
 
-        document.addEventListener('keydown', (event) => {
-            const newDirection = {
-                'ArrowUp': 'up',
-                'ArrowDown': 'down',
-                'ArrowLeft': 'left',
-                'ArrowRight': 'right',
-                'w': 'up',
-                's': 'down',
-                'a': 'left',
-                'd': 'right'
-            }[event.key];
+  mensajeTexto.textContent = `¡Juego terminado! Puntuación: ${score}`
+  mensajeTexto.innerHTML += "<br><br>Presiona el botón o la tecla 'R' para volver a jugar."
+  botonVolverJugar.style.display = "block"
+  mensajeAlerta.classList.add("mostrar")
+}
 
-            if (newDirection && !gameOver) {
-                if (
-                    !(newDirection === 'up' && direction === 'down') &&
-                    !(newDirection === 'down' && direction === 'up') &&
-                    !(newDirection === 'left' && direction === 'right') &&
-                    !(newDirection === 'right' && direction === 'left')
-                ) {
-                    direction = newDirection;
-                }
-            } else if (event.key === 'r' || event.key === 'R') {
-                initializeGame();
-            }
-        });
+function initializeGame() {
+  snake = [{ x: 10, y: 10 }]
+  direction = "right"
+  food = spawnFood()
+  score = 0
+  gameOver = false
+  speed = 200
+  obstacles = generateObstacles()
+  isPaused = false
+  updateScoreAndLevel()
+  hidePauseMessage()
+  updateCanvasColors()
+  gameLoop()
+}
 
+function togglePause() {
+  if (gameOver) return // No permitir pausar si el juego ha terminado
 
-// Theme toggle
-const themeButton = document.getElementById('themeButton');
-themeButton.addEventListener('click', () => {
-    document.documentElement.setAttribute('data-theme', 
-        document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'
-    );
-    themeButton.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '🌞' : '🌙';
-});
+  isPaused = !isPaused
+  if (isPaused) {
+    showPauseMessage()
+  } else {
+    hidePauseMessage()
+  }
+}
 
-// Colorblind mode toggle
-const colorblindButton = document.getElementById('colorblindButton');
-colorblindButton.addEventListener('click', () => {
-    document.documentElement.setAttribute('data-colorblind', 
-        document.documentElement.getAttribute('data-colorblind') === 'true' ? 'false' : 'true'
-    );
-});
+function showPauseMessage() {
+  const mensajeAlerta = document.getElementById("mensaje_alerta")
+  const mensajeTexto = document.getElementById("mensajeTexto")
+  mensajeTexto.textContent = "Juego pausado"
+  mensajeAlerta.classList.add("mostrar")
+  document.getElementById("botonVolverJugar").style.display = "none"
+}
 
-// Instructions modal
-const instructionsButton = document.getElementById('instructionsButton');
-const instructionsModal = document.getElementById('instructionsModal');
-const closeInstructionsButton = document.getElementById('closeInstructionsButton');
+function hidePauseMessage() {
+  const mensajeAlerta = document.getElementById("mensaje_alerta")
+  mensajeAlerta.classList.remove("mostrar")
+}
 
-instructionsButton.addEventListener('click', () => {
-    instructionsModal.style.display = 'flex';
-});
+function updateCanvasColors() {
+  if (!gameOver && !isPaused) {
+    drawGrid()
+    drawSnake()
+    drawFood()
+    drawObstacles()
+  }
+}
 
-closeInstructionsButton.addEventListener('click', () => {
-    instructionsModal.style.display = 'none';
-});
+function updateTheme(newTheme) {
+  const html = document.documentElement
+  html.setAttribute("data-theme", newTheme)
+  themeButton.querySelector(".icono-alternar-tema").textContent = newTheme === "light" ? "🌞" : "🌙"
+  updateCanvasColors()
+}
 
-// Restart button
-const restartButton = document.getElementById('restartButton');
-restartButton.addEventListener('click', initializeGame);
+function configurarModoDaltonico() {
+  const botonDaltonico = document.getElementById('botonDaltonico');
+  const html = document.documentElement;
+  const aviso = document.createElement('div');
+  aviso.className = 'aviso-daltonico';
+  aviso.textContent = 'Modo daltónico activado';
+  document.body.appendChild(aviso);
 
-// Start the game
-initializeGame();
+  const modoDaltonicoGuardado = localStorage.getItem('modoDaltonico') === 'true';
+  this.establecerModoDaltonico(modoDaltonicoGuardado, html, botonDaltonico, aviso);
+
+  botonDaltonico.addEventListener('click', () => {
+      const nuevoModo = html.getAttribute('data-colorblind') !== 'true';
+      this.establecerModoDaltonico(nuevoModo, html, botonDaltonico, aviso);
+  });
+}
+
+function establecerModoDaltonico(activar, html, boton, aviso) {
+  html.setAttribute('data-colorblind', activar);
+  localStorage.setItem('modoDaltonico', activar);
+
+  if (activar) {
+      boton.classList.add('active');
+      aviso.classList.add('show');
+      setTimeout(() => aviso.classList.remove('show'), 3000);
+  } else {
+      boton.classList.remove('active');
+      aviso.classList.remove('show');
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const botonJugar = document.getElementById("botonJugar")
+  const paginaBienvenida = document.getElementById("paginaBienvenida")
+  const contenedorJuego = document.getElementById("contenedorJuego")
+  const botonInstrucciones = document.getElementById("botonInstrucciones")
+  const instructionsModal = document.getElementById("instructionsModal")
+  const mensajeAlerta = document.getElementById("mensaje_alerta")
+
+  botonJugar.addEventListener("click", () => {
+    paginaBienvenida.style.display = "none"
+    contenedorJuego.style.display = "flex"
+    botonInstrucciones.style.display = "flex"
+    initializeGame()
+  })
+
+  botonInstrucciones.addEventListener("click", () => {
+    instructionsModal.style.display = "flex"
+  })
+
+  document.querySelector(".cerrar").addEventListener("click", () => {
+    instructionsModal.style.display = "none"
+  })
+
+  window.addEventListener("click", (e) => {
+    if (e.target === instructionsModal) {
+      instructionsModal.style.display = "none"
+    }
+  })
+
+  document.getElementById("botonVolverJugar").addEventListener("click", () => {
+    mensajeAlerta.classList.remove("mostrar")
+    initializeGame()
+  })
+
+  const botonPausa = document.getElementById("botonPausa")
+  botonPausa.addEventListener("click", togglePause)
+
+  document.addEventListener("keydown", (event) => {
+    if (event.code === "Space") {
+      event.preventDefault() // Previene la acción por defecto del espacio
+      togglePause()
+      return
+    }
+
+    const newDirection = {
+      ArrowUp: "up",
+      ArrowDown: "down",
+      ArrowLeft: "left",
+      ArrowRight: "right",
+      w: "up",
+      s: "down",
+      a: "left",
+      d: "right",
+    }[event.key]
+
+    if (newDirection && !gameOver && !isPaused) {
+      if (
+        !(newDirection === "up" && direction === "down") &&
+        !(newDirection === "down" && direction === "up") &&
+        !(newDirection === "left" && direction === "right") &&
+        !(newDirection === "right" && direction === "left")
+      ) {
+        direction = newDirection
+      }
+    } else if ((event.key === "r" || event.key === "R") && gameOver) {
+      initializeGame()
+    }
+  })
+
+  configurarModoDaltonico()
+})
+
+const themeButton = document.getElementById("botonTema")
+themeButton.addEventListener("click", () => {
+  const newTheme = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light"
+  updateTheme(newTheme)
+})
+
