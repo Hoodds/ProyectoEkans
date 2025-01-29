@@ -259,6 +259,12 @@ body {
     margin-bottom: 20px;
 }
 
+.titulo {
+    color: var(--color-texto);
+    font-size: 3.5rem;
+    margin: 0;
+}
+
 canvas {
     border: 2px solid var(--color-border);
     border-radius: 4px;

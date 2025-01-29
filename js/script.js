@@ -1,7 +1,7 @@
 const canvas = document.getElementById("gameCanvas")
 const ctx = canvas.getContext("2d")
 const gridSize = 20
-const cellSize = 30
+const cellSize = 23
 
 canvas.width = gridSize * cellSize
 canvas.height = gridSize * cellSize
